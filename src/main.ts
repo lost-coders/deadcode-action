@@ -1,5 +1,43 @@
-import * as core from '@actions/core'
-import { wait } from './wait'
+import * as core from '@actions/core';
+import { exec, ExecOptions } from '@actions/exec';
+import * as tc from '@actions/tool-cache';
+import { wait } from './wait';
+
+const GO_VERSION = '1.21.5';
+
+async function downloadDeadcode() {
+  const deadcodeDir = tc.find('deadcode', GO_VERSION);
+  if (deadcodeDir) {
+    console.log(`deadcodeDir: ${deadcodeDir}`);
+    core.addPath(deadcodeDir);
+    await exec(`ls ${deadcodeDir}`);
+    console.log(`Using cached deadcode executable: ${deadcodeDir}`);
+    return;
+  }
+
+  const goPath = await tc.downloadTool(
+    `https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz`
+  );
+  const goExtractedDir = await tc.extractTar(goPath, process.env.HOME);
+  const options: ExecOptions = {};
+  await exec(
+    `${goExtractedDir}/go/bin/go`,
+    ['install', 'golang.org/x/tools/cmd/deadcode@latest'],
+    options
+  );
+  const cachedPath = await tc.cacheFile(
+    `${goExtractedDir}/go/bin/deadcode`,
+    'deadcode',
+    'deadcode',
+    GO_VERSION
+  );
+  console.log(`cachedPath: ${cachedPath}`);
+  core.addPath(cachedPath);
+}
+
+async function runDeadcode() {
+  await exec('deadcode');
+}
 
 /**
  * The main function for the action.
@@ -7,20 +45,23 @@ import { wait } from './wait'
  */
 export async function run(): Promise<void> {
   try {
-    const ms: string = core.getInput('milliseconds')
+    const ms: string = core.getInput('milliseconds');
+
+    await downloadDeadcode();
+    await runDeadcode();
 
     // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
-    core.debug(`Waiting ${ms} milliseconds ...`)
+    core.debug(`Waiting ${ms} milliseconds ...`);
 
     // Log the current timestamp, wait, then log the new timestamp
-    core.debug(new Date().toTimeString())
-    await wait(parseInt(ms, 10))
-    core.debug(new Date().toTimeString())
+    core.debug(new Date().toTimeString());
+    await wait(parseInt(ms, 10));
+    core.debug(new Date().toTimeString());
 
     // Set outputs for other workflow steps to use
-    core.setOutput('time', new Date().toTimeString())
+    core.setOutput('time', new Date().toTimeString());
   } catch (error) {
     // Fail the workflow run if an error occurs
-    if (error instanceof Error) core.setFailed(error.message)
+    if (error instanceof Error) core.setFailed(error.message);
   }
 }
