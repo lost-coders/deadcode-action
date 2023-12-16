@@ -1,24 +1,45 @@
-name: 'The name of your action here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
-
-# Add your action's branding here. This will appear on the GitHub Marketplace.
-branding:
-  icon: 'heart'
-  color: 'red'
-
-# Define your inputs here.
+name: "golang-deadcode-action"
+description: "Run deadcode"
 inputs:
-  milliseconds:
-    description: 'Your input description here'
-    required: true
-    default: '1000'
-
-# Define your outputs here.
-outputs:
-  time:
-    description: 'Your output description here'
-
+  repo-checkout:
+    description: "Checkout the repository"
+    required: false
+    default: true
+  go-version:
+    description: "Version of Go to use for deadcode"
+    required: false
+  check-latest:
+    description: "Set this option to true if you want the action to always check for the latest available Go version that satisfies the version spec"
+    required: false
+    default: false
+  go-version-file:
+    description: "Path to the go.mod or go.work file."
+    required: false
+  cache:
+    description: "Used to specify whether Go caching is needed. Set to true, if you would like to enable caching."
+    required: false
+    default: true
+  flags:
+    description: "Flags to run with deadcode"
+    required: false
+  go-package:
+    description: "Go Package to scan with deadcode"
+    required: false
+    default: "./..."
 runs:
-  using: node20
-  main: dist/index.js
+  using: "composite"
+  steps:
+    - if: inputs.repo-checkout != 'false' # only explicit false prevents repo checkout
+      uses: actions/checkout@v4
+    - uses: actions/setup-go@v5
+      with:
+        go-version: ${{ inputs.go-version }}
+        check-latest: ${{ inputs.check-latest }}
+        go-version-file: ${{ inputs.go-version-file }}
+        cache: ${{ inputs.cache }}
+    - name: Install deadcode
+      run: go install golang.org/x/tools/cmd/deadcode@latest
+      shell: bash
+    - name: Run deadcode
+      run: deadcode ${{ inputs.flags }} ${{ inputs.go-package }}
+      shell: bash
