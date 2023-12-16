@@ -6,15 +6,6 @@ import { wait } from './wait';
 const GO_VERSION = '1.21.5';
 
 async function downloadDeadcode() {
-  const deadcodeDir = tc.find('deadcode', GO_VERSION);
-  if (deadcodeDir) {
-    console.log(`deadcodeDir: ${deadcodeDir}`);
-    core.addPath(deadcodeDir);
-    await exec(`ls ${deadcodeDir}`);
-    console.log(`Using cached deadcode executable: ${deadcodeDir}`);
-    return;
-  }
-
   const goPath = await tc.downloadTool(
     `https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz`
   );
@@ -25,14 +16,7 @@ async function downloadDeadcode() {
     ['install', 'golang.org/x/tools/cmd/deadcode@latest'],
     options
   );
-  const cachedPath = await tc.cacheFile(
-    `${goExtractedDir}/go/bin/deadcode`,
-    'deadcode',
-    'deadcode',
-    GO_VERSION
-  );
-  console.log(`cachedPath: ${cachedPath}`);
-  core.addPath(cachedPath);
+  core.addPath(`${goExtractedDir}/go/bin`);
 }
 
 async function runDeadcode() {

@@ -6620,21 +6620,11 @@ const tc = __importStar(__nccwpck_require__(7784));
 const wait_1 = __nccwpck_require__(5259);
 const GO_VERSION = '1.21.5';
 async function downloadDeadcode() {
-    const deadcodeDir = tc.find('deadcode', GO_VERSION);
-    if (deadcodeDir) {
-        console.log(`deadcodeDir: ${deadcodeDir}`);
-        core.addPath(deadcodeDir);
-        await (0, exec_1.exec)(`ls ${deadcodeDir}`);
-        console.log(`Using cached deadcode executable: ${deadcodeDir}`);
-        return;
-    }
     const goPath = await tc.downloadTool(`https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz`);
     const goExtractedDir = await tc.extractTar(goPath, process.env.HOME);
     const options = {};
     await (0, exec_1.exec)(`${goExtractedDir}/go/bin/go`, ['install', 'golang.org/x/tools/cmd/deadcode@latest'], options);
-    const cachedPath = await tc.cacheFile(`${goExtractedDir}/go/bin/deadcode`, 'deadcode', 'deadcode', GO_VERSION);
-    console.log(`cachedPath: ${cachedPath}`);
-    core.addPath(cachedPath);
+    core.addPath(`${goExtractedDir}/go/bin`);
 }
 async function runDeadcode() {
     await (0, exec_1.exec)('deadcode');
