@@ -15,7 +15,7 @@ To use the deadcode GitHub Action add the following step to your workflow:
 
 ```yml
 - id: deadcode
-  uses: lost-coders/deadcode-action@v1
+  uses: lost-coders/deadcode-action@v0.1.0
 ```
 
 By default, the deadcode Github Action will run with the
@@ -33,7 +33,7 @@ use the following syntax:
 
 ```yml
 - id: deadcode
-  uses: lost-coders/deadcode-action@v1
+  uses: lost-coders/deadcode-action@v0.1.0
   with:
     go-version: <your-Go-version>
     go-package: <your-package-pattern>
@@ -51,7 +51,7 @@ jobs:
     name: Run deadcode
     steps:
       - id: deadcode
-        uses: lost-coders/deadcode-action@v1
+        uses: lost-coders/deadcode-action@v0.1.0
         with:
           go-version: "1.21"
           go-package: "./..."
