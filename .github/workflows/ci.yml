@@ -20,3 +20,4 @@ jobs:
         with:
           go-version: "1.21"
           check-latest: true
+          flags: "-json"
